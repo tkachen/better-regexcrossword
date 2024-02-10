@@ -2,7 +2,7 @@
 // @name            BetterRegexcrossword
 // @name:ru         BetterRegexcrossword
 // @namespace       https://github.com/tkachen/better-regexcrossword
-// @version         0.1.2
+// @version         0.1.3
 // @description     Adds filters and sort options for player puzzles on regexcrossword.com
 // @description:ru  Добавляет фильтры и сортировки списка головоломок на regexcrossword.com
 // @author          tkachen
@@ -17,45 +17,45 @@
   'use strict'
 
   const customStyles = `
-#listCounter {
-	margin-left: auto;
-	align-self: center;
-	font-size: 20px;
-}
+    #listCounter {
+      margin-left: auto;
+      align-self: center;
+      font-size: 20px;
+    }
 
-.puzzleList {
-	display: none;
-}
+    .puzzleList {
+      display: none;
+    }
 
-.ambiguous {
-	background-color:  hsla(var(--on-error),90%) !important;
-}
+    .ambiguous {
+      background-color:  hsla(var(--on-error),90%) !important;
+    }
 
-.solved {
-	background-color: hsl(123,46%,34%) !important;
-}
+    .solved {
+      background-color: hsl(123,46%,34%) !important;
+    }
 
-.badge {
-	color: var(--white) !important;
-}
+    .badge {
+      color: var(--white) !important;
+    }
 
-.customFilter {
-	display: flex;
-	flex-wrap: wrap;
-	align-items: center;
-	gap: 10px;
-}
+    .customFilter {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 10px;
+    }
 
-.customFilter label {
-	display: flex;
-	align-items: center;
-}
+    .customFilter label {
+      display: flex;
+      align-items: center;
+    }
 
-.customFilter select {
-	background-color: black;
-	color: white;
-}
-`
+    .customFilter select {
+      background-color: black;
+      color: white;
+    }
+  `
 
   const svgIcons = {
     solved: '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor"><path d="M0 0h24v24H0z" fill="none"></path><path d="M19 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2zm-9 14l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"></path></svg>\n',
@@ -153,7 +153,7 @@
   }
 
   function filterPuzzles(puzzle) {
-    if (!config.filters.showSolved && solved.includes(puzzle.id)) return false
+    if (!config.filters.showSolved && puzzle.solved) return false
     if (!config.filters.showAmbiguous && puzzle.ambiguous) return false
     if (!config.filters.showHexagonal && puzzle.hexagonal) return false
     if (!config.filters.showSquare && !puzzle.hexagonal) return false
@@ -165,40 +165,40 @@
   function renderCustomFilters() {
     filtersElement = $('#standard-select').parent().parent()[0]
     $(filtersElement.children).hide()
-    const filtersHtml = `<div class="customFilter">
-		<select id="sortBy">
-	    	${ Object.entries(sortOptions).map(
-      ([name, opt]) => `<option value="${ name }" ${ name === config.sortBy ? 'selected' : '' }>${ opt.label }</option>`
-    ) } 
-	    </select>
-		<label>
-	    	<input type="checkbox" name="show" id="showSolved" value="solved" ${ config.filters.showSolved ? 'checked' : '' } />
-	        Solved
-	    </label>
-	    <label>
-	    	<input type="checkbox" name="show" id="showAmbiguous" value="ambiguous" ${ config.filters.showAmbiguous ? 'checked' : '' } />
-	        Ambiguous
-	    </label>
-	    <label>
-	    	<input type="checkbox" name="show" id="showHexagonal" value="hexagonal" ${ config.filters.showHexagonal ? 'checked' : '' } />
-	        Hexagonal
-	    </label>
-	    <label>
-	    	<input type="checkbox" name="show" id="showSquare" value="square" ${ config.filters.showSquare ? 'checked' : '' } />
-	        Square
-	    </label>
-	    <label>
-	    	<input type="checkbox" name="show" id="showMobile" value="mobile" ${ config.filters.showMobile ? 'checked' : '' } />
-	        Mobile
-	    </label>
-	    <label>
-	    	<input type="checkbox" name="show" id="showDesktop" value="desktop" ${ config.filters.showDesktop ? 'checked' : '' } />
-	        Desktop
-	    </label>
-	</div>
-	<div id="listCounter"><div>
-	`
-    $(filtersElement).append(filtersHtml)
+
+    $(filtersElement).append(`
+      <div class="customFilter">
+        <label>
+          <input type="checkbox" name="show" id="showSolved" value="solved" ${ config.filters.showSolved ? 'checked' : '' } />
+            Solved
+        </label>
+        <label>
+          <input type="checkbox" name="show" id="showAmbiguous" value="ambiguous" ${ config.filters.showAmbiguous ? 'checked' : '' } />
+            Ambiguous
+        </label>
+        <label>
+          <input type="checkbox" name="show" id="showHexagonal" value="hexagonal" ${ config.filters.showHexagonal ? 'checked' : '' } />
+            Hexagonal
+        </label>
+        <label>
+          <input type="checkbox" name="show" id="showSquare" value="square" ${ config.filters.showSquare ? 'checked' : '' } />
+            Square
+        </label>
+        <label>
+          <input type="checkbox" name="show" id="showMobile" value="mobile" ${ config.filters.showMobile ? 'checked' : '' } />
+            Mobile
+        </label>
+        <label>
+          <input type="checkbox" name="show" id="showDesktop" value="desktop" ${ config.filters.showDesktop ? 'checked' : '' } />
+            Desktop
+        </label>
+        <select id="sortBy">
+        ${ Object.entries(sortOptions).map(([name, opt]) => `<option value="${ name }" ${ name === config.sortBy ? 'selected' : '' }>${ opt.label }</option>`) }
+        </select>
+      </div>
+      <div id="listCounter"><div>
+    `)
+
     $('#showSolved').change(function() {
       updateConfig({ filters: { showSolved: this.checked } })
       renderCustomPuzzleList()
@@ -244,22 +244,20 @@
     $('#listCounter').text(customPuzzleListElement.children.length)
   }
 
-  function renderCustomPuzzleListItem(data, i) {
-    const newElementHtml = `<a href="/playerpuzzles/${ data.id }" class="${ puzzleListRowElementClass } ${ data.solved ? 'solved' : '' } ${ data.ambiguous ? 'ambiguous' : '' }" draggable="false">
-		${ solved.includes(data.id)
-      ? `<i class="${ puzzleListRowElementIconClass }">${ svgIcons.solved }</i>`
-      : `<i class="${ puzzleListRowElementIconClass }">${ svgIcons.unsolved }</i>`
-    }
-		<span class="${ puzzleListRowElementNameClass }">${ data.name }</span>
-		${ data.ambiguous ? `<span class="badge ${ puzzleListRowElementBadgeClass } ${ puzzleListRowElementHiddenMobileClass }">Ambiguous</span>` : '' }
-		<span class="badge ${ puzzleListRowElementBadgeClass } ${ puzzleListRowElementHiddenMobileClass }">${ new Date(data.dateUpdated * 1000).toLocaleDateString('default') }</span>
-		<span class="badge ${ puzzleListRowElementBadgeClass } ${ puzzleListRowElementHiddenMobileClass }">S ${ data.size }</span>
-		${ !data.mobile ? `<i class="${ puzzleListRowElementIconClass }">${ svgIcons.keyboard }</i>` : '' }
-		${ data.hexagonal ? `<i class="${ puzzleListRowElementIconClass }">${ svgIcons.hexagon }</i>` : '' }
-		<span class="badge ${ puzzleListRowElementBadgeClass }" title="${ data.votes } votes">R ${ data.ratingAvg }</span>
-		<i class="${ puzzleListRowElementIconClass }">${ svgIcons.arrow }</i>
-	</a>`
-    $(customPuzzleListElement).append(newElementHtml)
+  function renderCustomPuzzleListItem(data) {
+    $(customPuzzleListElement).append(`
+      <a href="/playerpuzzles/${ data.id }" class="${ puzzleListRowElementClass } ${ data.solved ? 'solved' : '' } ${ data.ambiguous ? 'ambiguous' : '' }" draggable="false">
+        <i class="${ puzzleListRowElementIconClass }">${ data.solved ? svgIcons.solved : svgIcons.unsolved }</i>
+        <span class="${ puzzleListRowElementNameClass }">${ data.name }</span>
+        ${ data.ambiguous ? `<span class="badge ${ puzzleListRowElementBadgeClass } ${ puzzleListRowElementHiddenMobileClass }">Ambiguous</span>` : '' }
+        <span class="badge ${ puzzleListRowElementBadgeClass } ${ puzzleListRowElementHiddenMobileClass }">${ new Date(data.dateUpdated * 1000).toLocaleDateString('default') }</span>
+        <span class="badge ${ puzzleListRowElementBadgeClass } ${ puzzleListRowElementHiddenMobileClass }">S ${ data.size }</span>
+        ${ !data.mobile ? `<i class="${ puzzleListRowElementIconClass }">${ svgIcons.keyboard }</i>` : '' }
+        ${ data.hexagonal ? `<i class="${ puzzleListRowElementIconClass }">${ svgIcons.hexagon }</i>` : '' }
+        <span class="badge ${ puzzleListRowElementBadgeClass }" title="${ data.votes } votes">R ${ data.ratingAvg }</span>
+        <i class="${ puzzleListRowElementIconClass }">${ svgIcons.arrow }</i>
+      </a>
+    `)
   }
 
   let filtersElement = null
@@ -276,7 +274,9 @@
     puzzleListElement = null
     customPuzzleListElement = null
 
-    $(document).arrive('a[href^="/playerpuzzles/"]', { onceOnly: true }, async function(el) {
+    document.arrive('a[href^="/playerpuzzles/"]:first-child', { onceOnly: true }, async function(el) {
+      document.unbindArrive()
+
       puzzleListElement = el.parentElement
       puzzleListRowElementClass = el.className
       puzzleListRowElementIconClass = el.children[0].className
@@ -296,8 +296,6 @@
   let previousPath = ''
   const observer = new MutationObserver(() => {
     if (window.location.pathname === previousPath) return
-
-    document.unbindArrive()
 
     previousPath = window.location.pathname
 
