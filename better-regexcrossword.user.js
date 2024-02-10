@@ -8,6 +8,7 @@
 // @author          tkachen
 // @match           https://regexcrossword.com/*
 // @downloadURL     https://github.com/tkachen/better-regexcrossword/raw/master/better-regexcrossword.user.js
+// @require         https://cdn.jsdelivr.net/npm/jquery@3/dist/jquery.min.js
 // @require         https://raw.githubusercontent.com/uzairfarooq/arrive/master/minified/arrive.min.js
 // @grant           none
 // ==/UserScript==
