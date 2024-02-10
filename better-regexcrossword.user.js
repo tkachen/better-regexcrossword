@@ -2,12 +2,12 @@
 // @name            BetterRegexcrossword
 // @name:ru         BetterRegexcrossword
 // @namespace       https://github.com/tkachen/better-regexcrossword
-// @version         0.1.1
+// @version         0.1.2
 // @description     Adds filters and sort options for player puzzles on regexcrossword.com
 // @description:ru  Добавляет фильтры и сортировки списка головоломок на regexcrossword.com
 // @author          tkachen
 // @match           https://regexcrossword.com/*
-// @downloadURL     https://github.com/tkachen/better-regexcrossword/raw/master/better-regexcrossword.user.js
+// @downloadURL     https://github.com/tkachen/better-regexcrossword/raw/main/better-regexcrossword.user.js
 // @require         https://cdn.jsdelivr.net/npm/jquery@3/dist/jquery.min.js
 // @require         https://raw.githubusercontent.com/uzairfarooq/arrive/master/minified/arrive.min.js
 // @grant           none
