@@ -2,7 +2,7 @@
 // @name            BetterRegexcrossword
 // @name:ru         BetterRegexcrossword
 // @namespace       https://github.com/tkachen/better-regexcrossword
-// @version         0.2.1
+// @version         0.2.2
 // @description     Adds filters and sort options for player puzzles on regexcrossword.com
 // @description:ru  Добавляет фильтры и сортировки списка головоломок на regexcrossword.com
 // @author          tkachen
@@ -355,8 +355,12 @@
       // Fix wrapper height on mobile
       el.parentElement.style.height = "100dvh"
 
-      puzzleActiveClass = $('[data-id="field0-0"]').first().attr('class')
-      renderCustomClues(el)
+      const isSquarePuzzle = el.children[0].tagName === 'TABLE'
+
+      if (isSquarePuzzle) {
+        puzzleActiveClass = $('[data-id="field0-0"]').first().attr('class')
+        renderCustomClues(el)
+      }
     })
   }
 
