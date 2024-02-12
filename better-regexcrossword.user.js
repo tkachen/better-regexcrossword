@@ -2,7 +2,7 @@
 // @name            BetterRegexcrossword
 // @name:ru         BetterRegexcrossword
 // @namespace       https://github.com/tkachen/better-regexcrossword
-// @version         0.2.0
+// @version         0.2.1
 // @description     Adds filters and sort options for player puzzles on regexcrossword.com
 // @description:ru  Добавляет фильтры и сортировки списка головоломок на regexcrossword.com
 // @author          tkachen
@@ -336,8 +336,8 @@
     })
   }
 
-  function renderCustomClues() {
-    $('input[readonly]').each(function(){
+  function renderCustomClues(puzzle) {
+    $('input[readonly]', puzzle).each(function(){
       let parent = this.parentElement
       $(this.parentElement).append(`
         <div class="${this.className} customClue regex">${colorizer.colorizeText(this.getAttribute('value'))}</div>
@@ -356,7 +356,7 @@
       el.parentElement.style.height = "100dvh"
 
       puzzleActiveClass = $('[data-id="field0-0"]').first().attr('class')
-      renderCustomClues()
+      renderCustomClues(el)
     })
   }
 
