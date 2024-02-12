@@ -2,7 +2,7 @@
 // @name            BetterRegexcrossword
 // @name:ru         BetterRegexcrossword
 // @namespace       https://github.com/tkachen/better-regexcrossword
-// @version         0.1.3
+// @version         0.2.0
 // @description     Adds filters and sort options for player puzzles on regexcrossword.com
 // @description:ru  Добавляет фильтры и сортировки списка головоломок на regexcrossword.com
 // @author          tkachen
@@ -10,6 +10,7 @@
 // @downloadURL     https://github.com/tkachen/better-regexcrossword/raw/main/better-regexcrossword.user.js
 // @require         https://cdn.jsdelivr.net/npm/jquery@3/dist/jquery.min.js
 // @require         https://raw.githubusercontent.com/uzairfarooq/arrive/master/minified/arrive.min.js
+// @require         https://unpkg.com/regex-colorize@0.0.3/build/index.js
 // @grant           none
 // ==/UserScript==
 
@@ -54,6 +55,48 @@
     .customFilter select {
       background-color: black;
       color: white;
+    }
+
+    .originalClue {
+      display: none;
+    }
+
+    .customClue {
+      white-space: nowrap;
+
+      &, & * {
+        font-weight: normal; font-style: normal; text-decoration: none;
+      }
+    }
+
+    [data-testid="puzzle"] table {
+      & tbody th:last-child {
+        text-align: left;
+      }
+
+      & thead th[class] > div,
+      & tfoot th[class] > div,
+      & tbody tr[class] > th {
+        background-color: hsla(var(--white),50%);
+      }
+
+      & thead th[class]:not([class=""]) > div,
+      & tfoot th[class]:not([class=""]) > div,
+      & tbody tr[class]:not([class=""]) > th {
+        background-color: hsla(var(--white),90%);
+
+        & .regex       {1font-family: Monospace;}
+        & .regex b     {background: #99beff99; color: #000000;} /* metasequence */
+        & .regex i     {background: #ffc08099; color: #000000;} /* char class */
+        & .regex i b   {background: #e0a06099; color: #000000;} /* char class: metasequence */
+        & .regex i u   {background: #d9aa7999; color: #000000;} /* char class: range-hyphen */
+        & .regex b.g1  {background: #c5e89399; color: #000000;} /* group: depth 1 */
+        & .regex b.g2  {background: #a7bb5a99; color: #000000;} /* group: depth 2 */
+        & .regex b.g3  {background: #d5ce6f99; color: #000000;} /* group: depth 3 */
+        & .regex b.g4  {background: #ceae6399; color: #000000;} /* group: depth 4 */
+        & .regex b.g5  {background: #CE896399; color: #000000;} /* group: depth 5 */
+        & .regex b.err {background: #ed5c6599; color: #ffffff;} /* error */
+      }
     }
   `
 
@@ -241,7 +284,7 @@
 
     puzzles.sort(sortPuzzles).filter(filterPuzzles).forEach(renderCustomPuzzleListItem)
 
-    $('#listCounter').text(customPuzzleListElement.children.length)
+    $('#listCounter').text(`${customPuzzleListElement.children.length} / ${puzzles.length}`)
   }
 
   function renderCustomPuzzleListItem(data) {
@@ -293,6 +336,30 @@
     })
   }
 
+  function renderCustomClues() {
+    $('input[readonly]').each(function(){
+      let parent = this.parentElement
+      $(this.parentElement).append(`
+        <div class="${this.className} customClue regex">${colorizer.colorizeText(this.getAttribute('value'))}</div>
+      `)
+      $(this).addClass('originalClue')
+    })
+  }
+
+  let colorizer = new window.RegexColorize.default()
+  let puzzleActiveClass = ''
+  function processPuzzlePage() {
+    document.arrive('[data-testid="puzzle"]', { onceOnly: true }, function(el) {
+      document.unbindArrive()
+
+      // Fix wrapper height on mobile
+      el.parentElement.style.height = "100dvh"
+
+      puzzleActiveClass = $('[data-id="field0-0"]').first().attr('class')
+      renderCustomClues()
+    })
+  }
+
   let previousPath = ''
   const observer = new MutationObserver(() => {
     if (window.location.pathname === previousPath) return
@@ -301,6 +368,8 @@
 
     if (window.location.pathname === '/playerpuzzles') {
       processPuzzleListPage()
+    } else if (window.location.pathname.startsWith('/playerpuzzles/') || window.location.pathname.startsWith('/puzzles/')) {
+      processPuzzlePage()
     }
   })
 
