@@ -2,7 +2,7 @@
 // @name            BetterRegexcrossword
 // @name:ru         BetterRegexcrossword
 // @namespace       https://github.com/tkachen/better-regexcrossword
-// @version         0.2.2
+// @version         0.2.3
 // @description     Adds filters and sort options for player puzzles on regexcrossword.com
 // @description:ru  Добавляет фильтры и сортировки списка головоломок на regexcrossword.com
 // @author          tkachen
@@ -17,11 +17,16 @@
 (function() {
   'use strict'
 
-  const customStyles = `
+  const customListStyles = `
     #listCounter {
       margin-left: auto;
       align-self: center;
       font-size: 20px;
+    }
+
+    a[href^="/players/"]:hover,
+    a[href^="/playerpuzzles/"]:hover {
+      background: hsla(var(--white), 30%);
     }
 
     .puzzleList {
@@ -29,11 +34,11 @@
     }
 
     .ambiguous {
-      background-color:  hsla(var(--on-error),90%) !important;
+      background-color:  hsla(var(--on-error),90%);
     }
 
     .solved {
-      background-color: hsl(123,46%,34%) !important;
+      background-color: hsl(123,46%,34%);
     }
 
     .badge {
@@ -56,49 +61,66 @@
       background-color: black;
       color: white;
     }
-
-    .originalClue {
-      display: none;
-    }
-
-    .customClue {
-      white-space: nowrap;
-
-      &, & * {
-        font-weight: normal; font-style: normal; text-decoration: none;
-      }
-    }
-
-    [data-testid="puzzle"] table {
-      & tbody th:last-child {
-        text-align: left;
-      }
-
-      & thead th[class] > div,
-      & tfoot th[class] > div,
-      & tbody tr[class] > th {
-        background-color: hsla(var(--white),50%);
-      }
-
-      & thead th[class]:not([class=""]) > div,
-      & tfoot th[class]:not([class=""]) > div,
-      & tbody tr[class]:not([class=""]) > th {
-        background-color: hsla(var(--white),90%);
-
-        & .regex       {1font-family: Monospace;}
-        & .regex b     {background: #99beff99; color: #000000;} /* metasequence */
-        & .regex i     {background: #ffc08099; color: #000000;} /* char class */
-        & .regex i b   {background: #e0a06099; color: #000000;} /* char class: metasequence */
-        & .regex i u   {background: #d9aa7999; color: #000000;} /* char class: range-hyphen */
-        & .regex b.g1  {background: #c5e89399; color: #000000;} /* group: depth 1 */
-        & .regex b.g2  {background: #a7bb5a99; color: #000000;} /* group: depth 2 */
-        & .regex b.g3  {background: #d5ce6f99; color: #000000;} /* group: depth 3 */
-        & .regex b.g4  {background: #ceae6399; color: #000000;} /* group: depth 4 */
-        & .regex b.g5  {background: #CE896399; color: #000000;} /* group: depth 5 */
-        & .regex b.err {background: #ed5c6599; color: #ffffff;} /* error */
-      }
-    }
   `
+
+  function customCluesStyle() {
+    return `
+      .originalClue {
+        display: none;
+      }
+
+      .customClue {
+        white-space: nowrap;
+
+        &, & * {
+          font-weight: normal; font-style: normal; text-decoration: none;
+        }
+      }
+
+      [data-testid="puzzle"] {
+        & tbody th:last-child {
+          text-align: left;
+        }
+
+        & .${clueWrapperClass} {
+          background-color: hsla(var(--white),50%);
+        }
+
+        & .${clueWrapperActiveClass}.${clueWrapperClass},
+        & .${clueWrapperActiveClass} .${clueWrapperClass} {
+          background-color: hsla(var(--white),90%);
+
+          & .regex       {1font-family: Monospace;}
+          & .regex b     {background: #99beff99; color: #000000;} /* metasequence */
+          & .regex i     {background: #ffc08099; color: #000000;} /* char class */
+          & .regex i b   {background: #e0a06099; color: #000000;} /* char class: metasequence */
+          & .regex i u   {background: #d9aa7999; color: #000000;} /* char class: range-hyphen */
+          & .regex b.g1  {background: #c5e89399; color: #000000;} /* group: depth 1 */
+          & .regex b.g2  {background: #a7bb5a99; color: #000000;} /* group: depth 2 */
+          & .regex b.g3  {background: #d5ce6f99; color: #000000;} /* group: depth 3 */
+          & .regex b.g4  {background: #ceae6399; color: #000000;} /* group: depth 4 */
+          & .regex b.g5  {background: #CE896399; color: #000000;} /* group: depth 5 */
+          & .regex b.err {background: #ed5c6599; color: #ffffff;} /* error */
+        }
+
+        ${isHexagonal
+          ? `
+            & .${hexTopClueClass} .customClue,
+            & .${hexLeftClueClass} .customClue,
+            & .${hexBottomClueClass} .customClue {
+              padding: 0 8px;
+            }
+
+            & .${hexTopClueClass} .customClue,
+            & .${hexBottomClueClass} .customClue {
+              transform: scale(-1);
+            }
+          `
+          : ''
+        }
+      }
+    `
+  }
 
   const svgIcons = {
     solved: '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor"><path d="M0 0h24v24H0z" fill="none"></path><path d="M19 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2zm-9 14l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"></path></svg>\n',
@@ -152,14 +174,12 @@
   }
 
   let puzzles = []
-
   async function getPuzzles() {
     const response = await fetch('https://api.regexcrossword.com/api/puzzles?fields=ambiguous%2CdateUpdated%2Chexagonal%2Cid%2Cmobile%2Cname%2CplayerNo%2CratingAvg%2Csize%2Cvotes')
     puzzles = await response.json()
   }
 
   let solved = []
-
   async function getSolved() {
     const appState = JSON.parse(localStorage.getItem('CapacitorStorage.regex-state'))
     if (appState.auth.isAuthenticated) {
@@ -311,8 +331,9 @@
   let puzzleListRowElementNameClass = ''
   let puzzleListRowElementBadgeClass = ''
   let puzzleListRowElementHiddenMobileClass = ''
-
   function processPuzzleListPage() {
+    addStyle(customListStyles)
+
     filtersElement = null
     puzzleListElement = null
     customPuzzleListElement = null
@@ -336,9 +357,27 @@
     })
   }
 
+  let clueWrapperClass = ''
+  let clueWrapperActiveClass = ''
+  let hexTopClueClass = ''
+  let hexLeftClueClass = ''
+  let hexBottomClueClass = ''
   function renderCustomClues(puzzle) {
+    if (isHexagonal) {
+      const firstClueClasses = $('[data-id="field0-0"] > div')[0].className.split(' ')
+      clueWrapperClass = firstClueClasses[0]
+      clueWrapperActiveClass = firstClueClasses[2]
+      const activeClues = $(`.${clueWrapperActiveClass}`)
+      hexTopClueClass = activeClues[0].className.split(' ')[1]
+      hexLeftClueClass = activeClues[1].className.split(' ')[1]
+      hexBottomClueClass = activeClues[2].className.split(' ')[1]
+    } else {
+      clueWrapperClass = $('tbody tr th', puzzle)[0].className
+      clueWrapperActiveClass = $('tbody tr', puzzle)[0].className
+    }
+    addStyle(customCluesStyle())
+
     $('input[readonly]', puzzle).each(function(){
-      let parent = this.parentElement
       $(this.parentElement).append(`
         <div class="${this.className} customClue regex">${colorizer.colorizeText(this.getAttribute('value'))}</div>
       `)
@@ -347,7 +386,7 @@
   }
 
   let colorizer = new window.RegexColorize.default()
-  let puzzleActiveClass = ''
+  let isHexagonal = null
   function processPuzzlePage() {
     document.arrive('[data-testid="puzzle"]', { onceOnly: true }, function(el) {
       document.unbindArrive()
@@ -355,12 +394,8 @@
       // Fix wrapper height on mobile
       el.parentElement.style.height = "100dvh"
 
-      const isSquarePuzzle = el.children[0].tagName === 'TABLE'
-
-      if (isSquarePuzzle) {
-        puzzleActiveClass = $('[data-id="field0-0"]').first().attr('class')
-        renderCustomClues(el)
-      }
+      isHexagonal = el.children[0].tagName === 'DIV'
+      renderCustomClues(el)
     })
   }
 
@@ -377,6 +412,5 @@
     }
   })
 
-  addStyle(customStyles)
   observer.observe(document, { subtree: true, childList: true })
 })()
