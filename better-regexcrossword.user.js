@@ -2,7 +2,7 @@
 // @name            BetterRegexcrossword
 // @name:ru         BetterRegexcrossword
 // @namespace       https://github.com/tkachen/better-regexcrossword
-// @version         0.2.4
+// @version         0.2.5
 // @description     Adds filters and sort options for player puzzles on regexcrossword.com
 // @description:ru  Добавляет фильтры и сортировки списка головоломок на regexcrossword.com
 // @author          tkachen
@@ -450,7 +450,7 @@
     function callback(mutationList) {
       mutationList.forEach((mutation) => {
         // on user select new cell game replaces custom clue with new regex clue text
-        if (mutation.addedNodes.length === 1) {
+        if (mutation.addedNodes.length === 1 && mutation.addedNodes[0].nodeType === 3) {
           replaceClueWithCustom(mutation.target)
         }
       });
