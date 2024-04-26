@@ -2,7 +2,7 @@
 // @name            BetterRegexcrossword
 // @name:ru         BetterRegexcrossword
 // @namespace       https://github.com/tkachen/better-regexcrossword
-// @version         0.2.5
+// @version         0.2.6
 // @description     Adds filters and sort options for player puzzles on regexcrossword.com
 // @description:ru  Добавляет фильтры и сортировки списка головоломок на regexcrossword.com
 // @author          tkachen
@@ -119,9 +119,10 @@
         }
 
         & .customPanelClue,
+        & .${clueWrapperClass},
         & .${clueWrapperActiveClass}.${clueWrapperClass},
         & .${clueWrapperActiveClass} .${clueWrapperClass} {
-          & .regex       {1font-family: Monospace;}
+          & .regex       {white-space: pre;}
           & .regex b     {background: #99beff99; color: #000000;} /* metasequence */
           & .regex i     {background: #ffc08099; color: #000000;} /* char class */
           & .regex i b   {background: #e0a06099; color: #000000;} /* char class: metasequence */
@@ -140,6 +141,7 @@
             min-width: 10px;
             border: 1px solid black;
           }
+          & .regex .space { background: black; }
         }
 
         ${isHexagonal
@@ -335,7 +337,7 @@
   function renderCustomPuzzleList() {
     if (!customPuzzleListElement) {
       const listWrapper = puzzleListElement.parentElement
-      // puzzleListElement.remove();
+      puzzleListElement.remove();
       customPuzzleListElement = $('<div/>', { 'class': 'customPuzzleList' })[0]
       $(listWrapper).append(customPuzzleListElement)
     } else {
@@ -429,11 +431,11 @@
     })
 
     function replaceClueWithCustom(container) {
-      const regexContent = container.textContent.trim();
+      const regexContent = container.textContent;
       if (!regexContent.length) return
       container.textContent = ''
       $(container).addClass('customPanelClue').append(`
-        <a href="https://regex101.com/?regex=${encodeURIComponent(regexContent)}&flavor=javascript&flags=gmi"
+        <a href="https://regex101.com/?regex=${encodeURIComponent('^' + regexContent + '$')}&flavor=javascript&flags=gmi"
            class="infoLink"
            target="_blank"
            rel="noreferrer"
@@ -465,6 +467,7 @@
   }
 
   function processRegexChars(str) {
+    str = str.replace(/^( +)|( +)$/g, '<span class="space" title="space">$1</span>')
     // this is rough version to replace octal codes. it begins from 2 digits to avoid replacement of subpattern matches like \1 \2
     str = str.replace(/\\([0-3]?[0-7]{2})/g,(_, g1) => `<span class="codedChar" title="\\${g1}">${String.fromCharCode(parseInt(g1, 8))}</span>`)
     str = str.replace(/\\u([0-9a-fA-F]{4})/g, (_, g1) => `<span class="codedChar" title="\\u${g1}">${String.fromCharCode(parseInt(g1, 16))}</span>`)
