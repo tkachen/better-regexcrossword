@@ -2,7 +2,7 @@
 // @name            BetterRegexcrossword
 // @name:ru         BetterRegexcrossword
 // @namespace       https://github.com/tkachen/better-regexcrossword
-// @version         0.2.6
+// @version         0.2.7
 // @description     Adds filters and sort options for player puzzles on regexcrossword.com
 // @description:ru  Добавляет фильтры и сортировки списка головоломок на regexcrossword.com
 // @author          tkachen
@@ -228,7 +228,11 @@
       const response = await fetch('https://api.regexcrossword.com/api/solved', {
         headers: { Authorization: `Bearer ${ appState.auth.token }` }
       })
-      solved = await response.json()
+      if (response.status === 200) {
+        solved = await response.json()
+      } else if (response.status === 401) {
+        alert('Can not get solved puzzles: expired auth token. Relogin to solve problem.');
+      }
     } else {
       solved = appState.solved.map(s => s.puzzleId)
     }
@@ -420,8 +424,9 @@
     addStyle(customCluesStyle())
 
     $('input[readonly]', puzzle).each(function(){
+      const originalClue = this.getAttribute('value')
       $(this.parentElement).append(`
-        <div class="${this.className} customClue regex">${processRegexChars(colorizer.colorizeText(this.getAttribute('value')))}</div>
+        <div class="${this.className} customClue regex" title="${originalClue}">${processRegexChars(colorizer.colorizeText(originalClue))}</div>
       `)
       $(this).addClass('originalClue')
     })
@@ -435,7 +440,7 @@
       if (!regexContent.length) return
       container.textContent = ''
       $(container).addClass('customPanelClue').append(`
-        <a href="https://regex101.com/?regex=${encodeURIComponent('^' + regexContent + '$')}&flavor=javascript&flags=gmi"
+        <a href="https://regex101.com/?regex=${encodeURIComponent('^' + regexContent + '$')}&flavor=javascript&flags=gm"
            class="infoLink"
            target="_blank"
            rel="noreferrer"
